@@ -14,6 +14,8 @@
 		17DC00542925D9CF007EBAD1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17DC00532925D9CF007EBAD1 /* Assets.xcassets */; };
 		17DC00572925D9CF007EBAD1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 17DC00552925D9CF007EBAD1 /* LaunchScreen.storyboard */; };
 		17DC00602925D9FE007EBAD1 /* Primitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC005F2925D9FE007EBAD1 /* Primitives.swift */; };
+		17DC00622925EDE2007EBAD1 /* Render.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC00612925EDE2007EBAD1 /* Render.swift */; };
+		17DC00642925EFA5007EBAD1 /* Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC00632925EFA5007EBAD1 /* Support.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +28,8 @@
 		17DC00562925D9CF007EBAD1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		17DC00582925D9CF007EBAD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17DC005F2925D9FE007EBAD1 /* Primitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Primitives.swift; sourceTree = "<group>"; };
+		17DC00612925EDE2007EBAD1 /* Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Render.swift; sourceTree = "<group>"; };
+		17DC00632925EFA5007EBAD1 /* Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +70,8 @@
 				17DC00532925D9CF007EBAD1 /* Assets.xcassets */,
 				17DC00552925D9CF007EBAD1 /* LaunchScreen.storyboard */,
 				17DC00582925D9CF007EBAD1 /* Info.plist */,
+				17DC00612925EDE2007EBAD1 /* Render.swift */,
+				17DC00632925EFA5007EBAD1 /* Support.swift */,
 			);
 			path = WithoutMetal;
 			sourceTree = "<group>";
@@ -141,10 +147,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17DC00622925EDE2007EBAD1 /* Render.swift in Sources */,
 				17DC004F2925D9CF007EBAD1 /* ViewController.swift in Sources */,
 				17DC00602925D9FE007EBAD1 /* Primitives.swift in Sources */,
 				17DC004B2925D9CF007EBAD1 /* AppDelegate.swift in Sources */,
 				17DC004D2925D9CF007EBAD1 /* SceneDelegate.swift in Sources */,
+				17DC00642925EFA5007EBAD1 /* Support.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

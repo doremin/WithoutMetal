@@ -71,21 +71,30 @@ struct Light {
 }
 
 protocol Primitive {
-  var vertices: [Vertex] { get set }
+  var vertices: [Vertex] { get }
 }
 
 protocol Model {
-  var triangles: [Triangle] { get set }
+  var triangles: [Triangle] { get }
   var transoform: ModelTransformation { get set }
+  
+  // model's origin point
+  var originX: Float { get set }
+  var originY: Float { get set }
+  var originZ: Float { get set }
 }
 
 struct Triangle: Primitive {
-  var vertices: [Vertex]
+  let vertices: [Vertex]
 }
 
 struct Cube: Model {
+  var originX: Float = 0
+  var originY: Float = 0
+  var originZ: Float = 0
+  
   var transoform =  ModelTransformation()
-  var triangles: [Triangle]
+  let triangles: [Triangle]
   
   static let `default`: Self = {
     let model = Cube(triangles: [

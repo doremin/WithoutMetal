@@ -12,13 +12,13 @@ import QuartzCore
 fileprivate let width = Int(UIScreen.main.bounds.width)
 fileprivate let height = Int(UIScreen.main.bounds.height)
 
-fileprivate let context = CGContext(data: nil, width: width, height: height,
+let context = CGContext(data: nil, width: width, height: height,
                         bitsPerComponent: 8, bytesPerRow: width * 4,
                         space: CGColorSpaceCreateDeviceRGB(),
                         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
 
 // aBGR
-func clearRenderBuffer(color: UInt32 = 0xff000000) {
+func clearRenderBuffer(aBGRHexColor: UInt32 = 0xff000000) {
   guard let context = context, let pixels = context.data else {
     return
   }
@@ -26,7 +26,7 @@ func clearRenderBuffer(color: UInt32 = 0xff000000) {
   let size = context.width * 4 * context.height
   
   for i in stride(from: 0, to: size, by: 4) {
-    pixels.storeBytes(of: color, toByteOffset: i, as: UInt32.self)
+    pixels.storeBytes(of: aBGRHexColor, toByteOffset: i, as: UInt32.self)
   }
 }
 

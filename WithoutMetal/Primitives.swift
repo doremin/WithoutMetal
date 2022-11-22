@@ -47,7 +47,7 @@ struct ModelTransformation {
 struct Camera {
   var cameraX: Float = 0
   var cameraY: Float = 20
-  var cemeraZ: Float = -20
+  var cameraZ: Float = -20
 }
 
 struct Light {

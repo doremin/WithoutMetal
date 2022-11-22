@@ -16,7 +16,7 @@ import QuartzCore
 fileprivate let useDepthBuffer = true
 fileprivate var depthBuffer = [Float](repeating: .infinity, count: context!.width * context!.height)
 
-func render(model: Model) {
+func render(model: Model, camera: Camera) {
   // Like Vertex Shader
   // clear frame buffer
   clearRenderBuffer()
@@ -27,10 +27,11 @@ func render(model: Model) {
   }
   
   // Like Fragment Shader
-  let transformedTriangles = transform(model: model)
+  // transform and project vertices
+  let transformedTriangles = transform(model: model, camera: camera)
 }
 
-func transform(model: Model) -> [Triangle] {
+func transform(model: Model, camera: Camera) -> [Triangle] {
   let transform = model.transoform
   let triangles = model.triangles.map { triangle in
     return Triangle(
@@ -78,10 +79,21 @@ func transform(model: Model) -> [Triangle] {
         newVertex.y += transform.modelY
         newVertex.z += transform.modelZ
         
+        // camera position apply
+        newVertex.x -= camera.cameraX
+        newVertex.y -= camera.cameraY
+        newVertex.z -= camera.cameraZ
+        
+        // skip rotation camera...
+        // 카메라가 보는 world는 V * x_view = M * x_model -> x_view = V^-1 * M * x_model이다.
+        // 그리고 V^-1 * M을 model view matrix라고 한다.
+        
         return newVertex
       }
     )
   }
+  
+  
   
   return triangles
 }

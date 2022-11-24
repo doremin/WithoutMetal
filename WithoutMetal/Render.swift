@@ -30,9 +30,6 @@ func render(model: Model, camera: Camera) {
   // transform and project vertices
   let transformedTriangles = transformAndProject(model: model, camera: camera)
   for triangle in transformedTriangles {
-//    setPixel(x: Int(triangle.vertices[0].x), y: Int(triangle.vertices[0].y), r: triangle.vertices[0].r, g: triangle.vertices[0].g, b: triangle.vertices[0].b, a: 1)
-//    setPixel(x: Int(triangle.vertices[1].x), y: Int(triangle.vertices[1].y), r: triangle.vertices[1].r, g: triangle.vertices[1].g, b: triangle.vertices[1].b, a: 1)
-//    setPixel(x: Int(triangle.vertices[2].x), y: Int(triangle.vertices[2].y), r: triangle.vertices[2].r, g: triangle.vertices[2].g, b: triangle.vertices[2].b, a: 1)
     draw(triangle: triangle)
   }
 }
@@ -244,30 +241,19 @@ func drawSpan(span: Span, yPosition y: Int) {
       }
     }
 
-    /* Also interpolate the normal vector. Note that for many triangles
-       in the cube, all three vertices have the same normal vector. So
-       all pixels in such a triangle get identical normal vectors. But
-       this is not a requirement: I've also included a triangle whose
-       vertices have different normal vectors, giving it a more "rounded"
-       look. */
-
     if shouldDrawPixel {
-      /* This is where the fragment shader does its job. It is called
-       once for every pixel that we must draw, with interpolated values
-       for the color, texture coordinates, and so on. Here you can do
-       all kinds of fun things. We calculate the color of the pixel
-       based on a very simple lighting model, but you can also sample
-       from a texture, etc. */
-
-      let factor = min(max(0, -1*(nx * light.diffuseX + ny * light.diffuseY + nz * light.diffuseZ)), 1)
-
-      r *= (light.ambientR * light.ambientIntensity + factor * light.diffuseR * light.diffuseIntensity)
-      g *= (light.ambientG * light.ambientIntensity + factor * light.diffuseG * light.diffuseIntensity)
-      b *= (light.ambientB * light.ambientIntensity + factor * light.diffuseB * light.diffuseIntensity)
-
-      r = max(min(r, 1), 0)   // clamp the colors
-      g = max(min(g, 1), 0)   // so they don't
-      b = max(min(b, 1), 0)   // become too bright
+      
+      // ambient
+      r = r * light.ambientR * light.ambientIntensity
+      g = g * light.ambientG * light.ambientIntensity
+      b = b * light.ambientB * light.ambientIntensity
+      
+      // difuse
+      let factor = max(-1 * (nx * light.diffuseX + ny * light.diffuseY + nz * light.diffuseZ), 0)
+      
+      r += factor * light.diffuseR * light.diffuseIntensity
+      g += factor * light.diffuseG * light.diffuseIntensity
+      b += factor * light.diffuseB * light.diffuseIntensity
 
       setPixel(x: x, y: y, r: r, g: g, b: b, a: a)
     }

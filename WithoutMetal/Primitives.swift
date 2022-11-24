@@ -64,10 +64,6 @@ struct Light {
   var diffuseX: Float = 0
   var diffuseY: Float = 0
   var diffuseZ: Float = 1
-  
-  var specularR: Float = 0.3
-  var specularG: Float = 0.3
-  var specularB: Float = 0.3
 }
 
 protocol Primitive {

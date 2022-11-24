@@ -9,9 +9,9 @@ import Foundation
 import QuartzCore
 
 /*
-  If you don't use depth buffer, it might be look weird.
-  Because it might happen that a triangle far from camera overlap near triangle.
-*/
+ If you don't use depth buffer, it might be look weird.
+ Because it might happen that a triangle far from camera overlap near triangle.
+ */
 
 fileprivate let useDepthBuffer = true
 fileprivate var depthBuffer = [Float](repeating: .infinity, count: context!.width * context!.height)
@@ -28,11 +28,21 @@ func render(model: Model, camera: Camera) {
   
   // Like Fragment Shader
   // transform and project vertices
-  let transformedTriangles = transform(model: model, camera: camera)
+  let transformedTriangles = transformAndProject(model: model, camera: camera)
+  for triangle in transformedTriangles {
+//    setPixel(x: Int(triangle.vertices[0].x), y: Int(triangle.vertices[0].y), r: triangle.vertices[0].r, g: triangle.vertices[0].g, b: triangle.vertices[0].b, a: 1)
+//    setPixel(x: Int(triangle.vertices[1].x), y: Int(triangle.vertices[1].y), r: triangle.vertices[1].r, g: triangle.vertices[1].g, b: triangle.vertices[1].b, a: 1)
+//    setPixel(x: Int(triangle.vertices[2].x), y: Int(triangle.vertices[2].y), r: triangle.vertices[2].r, g: triangle.vertices[2].g, b: triangle.vertices[2].b, a: 1)
+    draw(triangle: triangle)
+  }
 }
 
-func transform(model: Model, camera: Camera) -> [Triangle] {
+// this function transforms model into 2d scrren vertex
+func transformAndProject(model: Model, camera: Camera) -> [Triangle] {
   let transform = model.transoform
+  let width = context!.width
+  let height = context!.height
+  
   let triangles = model.triangles.map { triangle in
     return Triangle(
       vertices: triangle.vertices.map { vertex in
@@ -53,11 +63,11 @@ func transform(model: Model, camera: Camera) -> [Triangle] {
         // Rotate about the X-axis
         newVertex.y =  cos(transform.modelRotateX) * newVertex.y + sin(transform.modelRotateX) * newVertex.z
         newVertex.z = -sin(transform.modelRotateX) * newVertex.y + cos(transform.modelRotateX) * newVertex.z
-
+        
         // Rotate about the Y-axis
         newVertex.x =  cos(transform.modelRotateY) * newVertex.x + sin(transform.modelRotateY) * newVertex.z
         newVertex.z = -sin(transform.modelRotateY) * newVertex.x + cos(transform.modelRotateY) * newVertex.z
-
+        
         // Rotate about the Z-axis
         newVertex.x =  cos(transform.modelRotateZ) * newVertex.x + sin(transform.modelRotateZ) * newVertex.y
         newVertex.y = -sin(transform.modelRotateZ) * newVertex.x + cos(transform.modelRotateZ) * newVertex.y
@@ -65,11 +75,11 @@ func transform(model: Model, camera: Camera) -> [Triangle] {
         // rotate normal vector
         newVertex.ny =  cos(transform.modelRotateX) * newVertex.ny + sin(transform.modelRotateX) * newVertex.nz
         newVertex.nz = -sin(transform.modelRotateX) * newVertex.ny + cos(transform.modelRotateX) * newVertex.nz
-
+        
         // Rotate about the Y-axis
         newVertex.nx =  cos(transform.modelRotateY) * newVertex.nx + sin(transform.modelRotateY) * newVertex.nz
         newVertex.nz = -sin(transform.modelRotateY) * newVertex.nx + cos(transform.modelRotateY) * newVertex.nz
-
+        
         // Rotate about the Z-axis
         newVertex.nx =  cos(transform.modelRotateZ) * newVertex.nx + sin(transform.modelRotateZ) * newVertex.ny
         newVertex.ny = -sin(transform.modelRotateZ) * newVertex.nx + cos(transform.modelRotateZ) * newVertex.ny
@@ -79,7 +89,7 @@ func transform(model: Model, camera: Camera) -> [Triangle] {
         newVertex.y += transform.modelY
         newVertex.z += transform.modelZ
         
-        // camera position apply
+        // move object to camera space
         newVertex.x -= camera.cameraX
         newVertex.y -= camera.cameraY
         newVertex.z -= camera.cameraZ
@@ -88,20 +98,179 @@ func transform(model: Model, camera: Camera) -> [Triangle] {
         // 카메라가 보는 world는 V * x_view = M * x_model -> x_view = V^-1 * M * x_model이다.
         // 그리고 V^-1 * M을 model view matrix라고 한다.
         
+        // project to 2D by simple way
+        // place object far away from camera to avoid divide by zero
+        newVertex.x /= (newVertex.z + 100) * 0.01
+        newVertex.y /= (newVertex.z + 100) * 0.01
+        
+        newVertex.x *= Float(height / 80)
+        newVertex.y *= Float(height / 80)
+        
+        // set origin to center of screen
+        newVertex.x += Float(width / 2)
+        newVertex.y += Float(height / 2)
+        
         return newVertex
       }
     )
   }
   
-  
-  
   return triangles
 }
 
-func project() {
+fileprivate func isInsideViewport(vertex: Vertex) -> Bool {
+  let width = Float(context!.width)
+  let height = Float(context!.height)
   
+  return vertex.x >= 0 && vertex.x < width && vertex.y >= 0 && vertex.y < height
 }
 
 func draw(triangle: Triangle) {
+  guard isInsideViewport(vertex: triangle.vertices[0])
+      && isInsideViewport(vertex: triangle.vertices[1])
+      && isInsideViewport(vertex: triangle.vertices[2]) else {
+    return
+  }
   
+  var spans = [Span](repeating: Span(), count: Int(context!.height))
+  
+  spans = decideEdges(spans: spans, from: triangle.vertices[0], to: triangle.vertices[1])
+  spans = decideEdges(spans: spans, from: triangle.vertices[1], to: triangle.vertices[2])
+  spans = decideEdges(spans: spans, from: triangle.vertices[2], to: triangle.vertices[0])
+  
+  for (i, span) in spans.enumerated() {
+    drawSpan(span: span, yPosition: i)
+  }
+}
+
+func decideEdges(spans: [Span], from: Vertex, to: Vertex) -> [Span] {
+  let deltaY = to.y - from.y
+  
+  guard deltaY != 0 else {
+    return spans
+  }
+  
+  let (start, end) = deltaY > 0 ? (from, to) : (to, from)
+  
+  let endY = Int(round(end.y))
+  var positionY = Int(round(start.y))
+  let length = abs(deltaY)
+  
+  let stepX = (end.x - start.x) / length
+  var positionX = start.x
+  
+  let stepZ = (end.z - start.z) / length
+  var positionZ = start.z
+  
+  let stepR = (end.r - start.r) / length
+  var positionR = start.r
+  
+  let stepG = (end.g - start.g) / length
+  var positionG = start.g
+  
+  let stepB = (end.b - start.b) / length
+  var positionB = start.b
+  
+  let stepA = (end.a - start.a) / length
+  var positionA = start.a
+  
+  let stepNX = (end.nx - start.nx) / length
+  var positionNX = start.nx
+  
+  let stepNY = (end.ny - start.ny) / length
+  var positionNY = start.ny
+  
+  let stepNZ = (end.nz - start.nz) / length
+  var positionNZ = start.nz
+  
+  var spans = spans
+  
+  while positionY < endY {
+    let x = positionX
+    
+    if positionY >= 0 && positionY < spans.count {
+      spans[positionY].edges.append(
+        Edge(
+        x: Int(round(x)),
+        r: positionR, g: positionG, b: positionB, a: positionA,
+        z: positionZ,
+        nx: positionNX, ny: positionNY, nz: positionNZ))
+    }
+    
+    positionY += 1
+    positionX += stepX
+    positionZ += stepZ
+    positionR += stepR
+    positionG += stepG
+    positionB += stepB
+    positionA += stepA
+    positionNX += stepNX
+    positionNY += stepNY
+    positionNZ += stepNZ
+  }
+  
+  return spans
+}
+
+func drawSpan(span: Span, yPosition y: Int) {
+  guard span.edges.count == 2 else {
+    return
+  }
+  
+  let edgeDistance = span.right.x - span.left.x
+  
+  let light = Light()
+  
+  for x in span.left.x ..< span.right.x {
+    let alpha = Float((x - span.left.x)) / Float(edgeDistance)
+
+    var r = (1 - alpha) * span.left.r + alpha * span.right.r
+    var g = (1 - alpha) * span.left.g + alpha * span.right.g
+    var b = (1 - alpha) * span.left.b + alpha * span.right.b
+    let a = (1 - alpha) * span.left.a + alpha * span.right.a
+
+    let nx = (1 - alpha) * span.left.nx + alpha * span.right.nx
+    let ny = (1 - alpha) * span.left.ny + alpha * span.right.ny
+    let nz = (1 - alpha) * span.left.nz + alpha * span.right.nz
+
+    var shouldDrawPixel = true
+    if useDepthBuffer {
+      let z = (1 - alpha) * span.left.z + alpha * span.right.z
+      let offset = x + y * Int(context!.width)
+      if depthBuffer[offset] > z {
+        depthBuffer[offset] = z
+      } else {
+        shouldDrawPixel = false
+      }
+    }
+
+    /* Also interpolate the normal vector. Note that for many triangles
+       in the cube, all three vertices have the same normal vector. So
+       all pixels in such a triangle get identical normal vectors. But
+       this is not a requirement: I've also included a triangle whose
+       vertices have different normal vectors, giving it a more "rounded"
+       look. */
+
+    if shouldDrawPixel {
+      /* This is where the fragment shader does its job. It is called
+       once for every pixel that we must draw, with interpolated values
+       for the color, texture coordinates, and so on. Here you can do
+       all kinds of fun things. We calculate the color of the pixel
+       based on a very simple lighting model, but you can also sample
+       from a texture, etc. */
+
+      let factor = min(max(0, -1*(nx * light.diffuseX + ny * light.diffuseY + nz * light.diffuseZ)), 1)
+
+      r *= (light.ambientR * light.ambientIntensity + factor * light.diffuseR * light.diffuseIntensity)
+      g *= (light.ambientG * light.ambientIntensity + factor * light.diffuseG * light.diffuseIntensity)
+      b *= (light.ambientB * light.ambientIntensity + factor * light.diffuseB * light.diffuseIntensity)
+
+      r = max(min(r, 1), 0)   // clamp the colors
+      g = max(min(g, 1), 0)   // so they don't
+      b = max(min(b, 1), 0)   // become too bright
+
+      setPixel(x: x, y: y, r: r, g: g, b: b, a: a)
+    }
+
+  }
 }

@@ -46,7 +46,7 @@ struct ModelTransformation {
 
 struct Camera {
   var cameraX: Float = 0
-  var cameraY: Float = 20
+  var cameraY: Float = 0
   var cameraZ: Float = -20
 }
 
@@ -162,4 +162,31 @@ struct Cube: Model {
     
     return model
   }()
+}
+
+struct Span {
+  var edges: [Edge] = []
+  
+  var left: Edge {
+    return edges[0].x < edges[1].x ? edges[0] : edges[1]
+  }
+  
+  var right: Edge {
+    return edges[0].x < edges[1].x ? edges[1] : edges[0]
+  }
+}
+
+struct Edge {
+  let x: Int    // edge's x position
+  
+  let r: Float  // interpolated color
+  let g: Float
+  let b: Float
+  let a: Float
+  
+  let z: Float  // for depth buffer
+  
+  let nx: Float // interpolated normal vector
+  let ny: Float
+  let nz: Float
 }

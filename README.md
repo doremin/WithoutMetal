@@ -6,5 +6,4 @@ GPU에서 동작하는 logic을 구현해보자 (with phong reflection model, bi
 
 reference:[https://machinethink.net/blog/3d-rendering-without-shaders/](https://machinethink.net/blog/3d-rendering-without-shaders/)
 
-아이폰 앱으로 만들었는데 너무 느림.. mac app으로 만들면 괜찮긴 함
-![cube](/cube.png)
+![cube](/cube.gif)

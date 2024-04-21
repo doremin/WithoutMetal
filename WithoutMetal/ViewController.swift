@@ -39,6 +39,8 @@ class ViewController: UIViewController {
 
   @objc
   func draw() {
+    self.model.transoform.modelRotateY += 0.1
+    self.model.transoform.modelRotateX += 0.01
     render(model: self.model, camera: self.camera)
     presentRenderBuffer(layer: self.view.layer)
   }
